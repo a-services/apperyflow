@@ -14,7 +14,7 @@ class ApperyFlow {
 	def xml;
 
     /** List of button assets on the page */
-    List buttons = [];
+    List buttons;
 
     String startPage;
 	def startPageBean;
@@ -25,21 +25,49 @@ class ApperyFlow {
     String BEAN_BUTTON = "Ionic5ButtonBean";
 
 	void processBackupFolder(String backupFolder, String startPage) {
+
+		/* Parse XML metadata
+		 */
 		projectFolder = new File(backupFolder,'project').path
         xml = new XmlParser().parse(new FileReader(projectFolder + '/metadata.xml'))
 
+        /* If start page not specified, find default routiing,
+		   otherwise try to find bean with this name.
+		 */
 		if (startPage == null) {
 			startPage = findDefaultRouting()
 		}
+		startPageBean = findBean(startPage)
+		if (startPageBean == null) {
+			println "[ERROR] Page not found: " + startPage
+			System.exit(1);
+		}
+		startPage = startPageBean.@name
 		println "Start page: " + startPage
-		this.startPage = startPage
+		this.startPage = startPageBean.@name
 
-		startPageBean = xml.asset.find { it.@type == TYPE_BEAN && it.@name == startPage }
+        /* Find buttons in page beans
+		 */
         def screenBeans = new JsonSlurper().parseText(new File(projectFolder, startPageBean.@id).text)
-        visitButtons(screenBeans.bean.children)
+        buttons = []
+		visitButtons(screenBeans.bean.children)
 		println "== ${buttons.size()} buttons found"
 	}
 
+    /**
+	 * Find bean with given name in assets,
+	 * ignore case.
+     */
+    def findBean(String name) {
+		return xml.asset.find {
+			return it.@type == TYPE_BEAN &&
+			       it.@name.toLowerCase() == name.toLowerCase()
+		}
+	}
+
+    /**
+	 * Recursive function to find buttons in asset's children beans.
+	 */
 	void visitButtons(children) {
 		if (!children == null) {
 			return
