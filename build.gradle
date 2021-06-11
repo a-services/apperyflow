@@ -1,0 +1,28 @@
+plugins {
+    id 'groovy'
+    id 'application'
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+    implementation 'org.codehaus.groovy:groovy-all:3.0.8'
+    implementation 'info.picocli:picocli-groovy:4.6.1'
+}
+
+application {
+    mainClass = 'af'
+}
+
+/**
+ * Compile fat jar with all dependencies included.
+ */
+task fatjar(type: Jar) {
+    from {
+        configurations.compileClasspath.filter{ it.exists() }
+            .collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    with jar
+}

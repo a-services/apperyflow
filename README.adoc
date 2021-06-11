@@ -1,0 +1,13 @@
+= apperyflow
+
+Generate flow diagram with page transitions, buttons and backend services from Appery.io Ionic5 project backup.
+
+----
+Usage: apperyflow [-hV] [-s[=<startPage>]] <backupFolder>
+Building flow diagram from Appery Ionic5 project backup
+      <backupFolder>   Unzipped Appery Ionic5 project backup.
+  -h, --help           Show this help message and exit.
+  -s, --start[=<startPage>]
+                       Start page.
+  -V, --version        Print version information and exit.
+----
