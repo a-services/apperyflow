@@ -13,16 +13,8 @@ class ApperyFlow {
 	/** XML metadata */
 	def xml;
 
-    /** List of button assets on the page */
-    List buttons;
-
     String startPage;
 	def startPageBean;
-
-    String TYPE_BEAN = "50";
-    String TYPE_ROUTING = "390";
-
-    String BEAN_BUTTON = "Ionic5ButtonBean";
 
 	void processBackupFolder(String backupFolder, String startPage) {
 
@@ -43,15 +35,12 @@ class ApperyFlow {
 			System.exit(1);
 		}
 		startPage = startPageBean.@name
-		println "Start page: " + startPage
+		println "Start page: $startPage | ${startPageBean.@id}"
 		this.startPage = startPageBean.@name
-
-        /* Find buttons in page beans
-		 */
         def screenBeans = new JsonSlurper().parseText(new File(projectFolder, startPageBean.@id).text)
-        buttons = []
-		visitButtons(screenBeans.bean.children)
-		println "== ${buttons.size()} buttons found"
+
+		new ButtonVisitor(startPage).run(screenBeans.bean.children)
+		//new BeanVisitor(startPage).collectTypes(screenBeans.bean.children)
 	}
 
     /**
@@ -60,31 +49,8 @@ class ApperyFlow {
      */
     def findBean(String name) {
 		return xml.asset.find {
-			return it.@type == TYPE_BEAN &&
+			return it.@type == Const.TYPE_BEAN &&
 			       it.@name.toLowerCase() == name.toLowerCase()
-		}
-	}
-
-    /**
-	 * Recursive function to find buttons in asset's children beans.
-	 */
-	void visitButtons(children) {
-		if (!children == null) {
-			return
-		}
-
-		/* Find buttons in this screen
-		 */
-		def res = children.bean.find { it["@type"] == BEAN_BUTTON }
-		if (res != null) {
-			println "${startPage} --> ${res.property.componentName}:::_Button"
-			buttons << res
-		}
-		def beans = children.bean
-		for (def bean: beans) {
-			if (bean.children) {
-				visitButtons(bean.children)
-			}
 		}
 	}
 
